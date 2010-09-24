@@ -76,21 +76,21 @@ namespace itk
  */
 template< class TPixel, unsigned int VImageDimension = 3 >
 class ITK_EXPORT VectorImage:
-  public ImageBase< VImageDimension >
+  public RegularImageBase< VImageDimension >
 {
 public:
   /** Standard class typedefs */
-  typedef VectorImage                  Self;
-  typedef ImageBase< VImageDimension > Superclass;
-  typedef SmartPointer< Self >         Pointer;
-  typedef SmartPointer< const Self >   ConstPointer;
-  typedef WeakPointer< const Self >    ConstWeakPointer;
+  typedef VectorImage                         Self;
+  typedef RegularImageBase< VImageDimension > Superclass;
+  typedef SmartPointer< Self >                Pointer;
+  typedef SmartPointer< const Self >          ConstPointer;
+  typedef WeakPointer< const Self >           ConstWeakPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(VectorImage, ImageBase);
+  itkTypeMacro(VectorImage, RegularImageBase);
 
   /** Pixel typedef support. Used to declare pixel type in filters
    * or other operations. This is not the actual pixel type contained in

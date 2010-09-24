@@ -17,7 +17,7 @@
 #ifndef __itkImage_h
 #define __itkImage_h
 
-#include "itkImageBase.h"
+#include "itkRegularImageBase.h"
 #include "itkImageRegion.h"
 #include "itkImportImageContainer.h"
 #include "itkDefaultPixelAccessor.h"
@@ -78,21 +78,21 @@ namespace itk
  *
  * \ingroup ImageObjects */
 template< class TPixel, unsigned int VImageDimension = 2 >
-class ITK_EXPORT Image:public ImageBase< VImageDimension >
+class ITK_EXPORT Image:public RegularImageBase< VImageDimension >
 {
 public:
   /** Standard class typedefs */
-  typedef Image                        Self;
-  typedef ImageBase< VImageDimension > Superclass;
-  typedef SmartPointer< Self >         Pointer;
-  typedef SmartPointer< const Self >   ConstPointer;
-  typedef WeakPointer< const Self >    ConstWeakPointer;
+  typedef Image                               Self;
+  typedef RegularImageBase< VImageDimension > Superclass;
+  typedef SmartPointer< Self >                Pointer;
+  typedef SmartPointer< const Self >          ConstPointer;
+  typedef WeakPointer< const Self >           ConstWeakPointer;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(Image, ImageBase);
+  itkTypeMacro(Image, RegularImageBase);
 
   /** Pixel typedef support. Used to declare pixel type in filters
    * or other operations. */
