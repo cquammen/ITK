@@ -44,7 +44,7 @@ namespace itk
  *
  */
 template< class TImage, class TAccessor >
-class ITK_EXPORT ImageAdaptor:public ImageBase< ::itk::GetImageDimension< TImage >::ImageDimension >
+class ITK_EXPORT ImageAdaptor:public RegularImageBase< ::itk::GetImageDimension< TImage >::ImageDimension >
 {
 public:
   /** Dimension of the image.  This constant is used by functions that are
@@ -54,14 +54,14 @@ public:
   itkStaticConstMacro(ImageDimension, unsigned int, TImage::ImageDimension);
 
   /** Standard class typedefs. */
-  typedef ImageAdaptor                                        Self;
-  typedef ImageBase< itkGetStaticConstMacro(ImageDimension) > Superclass;
-  typedef SmartPointer< Self >                                Pointer;
-  typedef SmartPointer< const Self >                          ConstPointer;
-  typedef WeakPointer< const Self >                           ConstWeakPointer;
+  typedef ImageAdaptor                                               Self;
+  typedef RegularImageBase< itkGetStaticConstMacro(ImageDimension) > Superclass;
+  typedef SmartPointer< Self >                                       Pointer;
+  typedef SmartPointer< const Self >                                 ConstPointer;
+  typedef WeakPointer< const Self >                                  ConstWeakPointer;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(ImageAdaptor, ImageBase);
+  itkTypeMacro(ImageAdaptor, RegularImageBase);
 
   /** Typedef of unadapted image */
   typedef TImage InternalImageType;
