@@ -37,11 +37,6 @@ ImageBase< VImageDimension >
 ::ImageBase()
 {
   memset( m_OffsetTable, 0, ( VImageDimension + 1 ) * sizeof( unsigned long ) );
-  m_Spacing.Fill(1.0);
-  m_Origin.Fill(0.0);
-  m_Direction.SetIdentity();
-  m_IndexToPhysicalPoint.SetIdentity();
-  m_PhysicalPointToIndex.SetIdentity();
 }
 
 /**
@@ -76,121 +71,6 @@ template< unsigned int VImageDimension >
 ImageBase< VImageDimension >
 ::~ImageBase()
 {}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::SetSpacing(const SpacingType & spacing)
-{
-  itkDebugMacro("setting Spacing to " << spacing);
-  if ( this->m_Spacing != spacing )
-    {
-    this->m_Spacing = spacing;
-    this->ComputeIndexToPhysicalPointMatrices();
-    this->Modified();
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::SetSpacing(const double spacing[VImageDimension])
-{
-  SpacingType s(spacing);
-
-  this->SetSpacing(s);
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::SetSpacing(const float spacing[VImageDimension])
-{
-  Vector< float, VImageDimension > sf(spacing);
-  SpacingType                      s;
-  s.CastFrom(sf);
-  this->SetSpacing(s);
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::SetOrigin(const double origin[VImageDimension])
-{
-  PointType p(origin);
-
-  this->SetOrigin(p);
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::SetOrigin(const float origin[VImageDimension])
-{
-  Point< float, VImageDimension > of(origin);
-  PointType                       p;
-  p.CastFrom(of);
-  this->SetOrigin(p);
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::SetDirection(const DirectionType direction)
-{
-  bool modified = false;
-
-  for ( unsigned int r = 0; r < VImageDimension; r++ )
-    {
-    for ( unsigned int c = 0; c < VImageDimension; c++ )
-      {
-      if ( m_Direction[r][c] != direction[r][c] )
-        {
-        m_Direction[r][c] = direction[r][c];
-        modified = true;
-        }
-      }
-    }
-
-  if ( modified )
-    {
-    this->ComputeIndexToPhysicalPointMatrices();
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-ImageBase< VImageDimension >
-::ComputeIndexToPhysicalPointMatrices()
-{
-  DirectionType scale;
-
-  for ( unsigned int i = 0; i < VImageDimension; i++ )
-    {
-    if ( this->m_Spacing[i] == 0.0 )
-      {
-      itkExceptionMacro("A spacing of 0 is not allowed: Spacing is " << this->m_Spacing);
-      }
-    scale[i][i] = this->m_Spacing[i];
-    }
-
-  if ( vnl_determinant( this->m_Direction.GetVnlMatrix() ) == 0.0 )
-    {
-    itkExceptionMacro(<< "Bad direction, determinant is 0. Direction is " << this->m_Direction);
-    }
-
-  this->m_IndexToPhysicalPoint = this->m_Direction * scale;
-  this->m_PhysicalPointToIndex = m_IndexToPhysicalPoint.GetInverse();
-
-  this->Modified();
-}
 
 //----------------------------------------------------------------------------
 template< unsigned int VImageDimension >
@@ -312,9 +192,6 @@ ImageBase< VImageDimension >
       {
       // Copy the meta data for this data type
       this->SetLargestPossibleRegion( imgData->GetLargestPossibleRegion() );
-      this->SetSpacing( imgData->GetSpacing() );
-      this->SetOrigin( imgData->GetOrigin() );
-      this->SetDirection( imgData->GetDirection() );
       this->SetNumberOfComponentsPerPixel(
         imgData->GetNumberOfComponentsPerPixel() );
       }
@@ -531,17 +408,6 @@ ImageBase< VImageDimension >
   os << indent << "RequestedRegion: " << std::endl;
   this->GetRequestedRegion().PrintSelf( os, indent.GetNextIndent() );
 
-  os << indent << "Spacing: " << this->GetSpacing() << std::endl;
-
-  os << indent << "Origin: " << this->GetOrigin() << std::endl; \
-
-  os << indent << "Direction: " << std::endl << this->GetDirection() << std::endl;
-
-  os << indent << "IndexToPointMatrix: " << std::endl;
-  os << indent << this->m_IndexToPhysicalPoint << std::endl;
-
-  os << indent << "PointToIndexMatrix: " << std::endl;
-  os << indent << this->m_PhysicalPointToIndex << std::endl;
 }
 } // end namespace itk
 
