@@ -106,99 +106,11 @@ public:
    * */
   typedef typename Superclass::DirectionType DirectionType;
 
-  /** Set the region object that defines the size and starting index
-   * for the largest possible region this image could represent.  This
-   * is used in determining how much memory would be needed to load an
-   * entire dataset.  It is also used to determine boundary
-   * conditions.
-   * \sa ImageRegion, SetBufferedRegion(), SetRequestedRegion() */
-  virtual void SetLargestPossibleRegion(const RegionType & region);
-
-  /** Set the region object that defines the size and starting index
-   * of the region of the image currently load in memory.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetRequestedRegion() */
-  virtual void SetBufferedRegion(const RegionType & region);
-
-  /** Set the region object that defines the size and starting index
-   * for the region of the image requested.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetBufferedRegion() */
-  virtual void SetRequestedRegion(const RegionType & region);
-
-  /** Set the requested region from this data object to match the requested
-   * region of the data object passed in as a parameter.  This method
-   * implements the API from DataObject. The data object parameter must be
-   * castable to an ImageBase. */
-  virtual void SetRequestedRegion(DataObject *data);
-
-  /** Get the region object that defines the size and starting index
-   * for the region of the image requested (i.e., the region of the
-   * image to be operated on by a filter).
-   * This method overloads the one in ImageBase in order to delegate
-   * to the adapted image.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetBufferedRegion() */
-  virtual const RegionType & GetRequestedRegion() const;
-
-  /** Get the region object that defines the size and starting index
-   * for the largest possible region this image could represent.  This
-   * is used in determining how much memory would be needed to load an
-   * entire dataset.  It is also used to determine boundary
-   * conditions.
-   * This method overloads the one in ImageBase in order to delegate
-   * to the adapted image.
-   * \sa ImageRegion, GetBufferedRegion(), GetRequestedRegion() */
-  virtual const RegionType & GetLargestPossibleRegion() const;
-
-  /** Get the region object that defines the size and starting index
-   * of the region of the image currently loaded in memory.
-   * This method overloads the one in ImageBase in order to delegate
-   * to the adapted image.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetRequestedRegion() */
-  virtual const RegionType & GetBufferedRegion() const;
-
-  /** Allocate the image memory. Dimension and Size must be set a priori. */
-  inline void Allocate()
-  {
-    this->m_Image->Allocate();
-  }
-
-  /** Restore the data object to its initial state. This means releasing
-   * memory. */
-  virtual void Initialize();
-
-  /** Set a pixel. */
-  void SetPixel(const IndexType & index, const PixelType & value)
-  { m_PixelAccessor.Set(this->m_Image->GetPixel(index), value); }
-
-  /** Get a pixel (read only version)  */
-  PixelType GetPixel(const IndexType & index) const
-  { return m_PixelAccessor.Get( this->m_Image->GetPixel(index) ); }
-
-  /** Access a pixel. This version can only be an rvalue. */
-  PixelType operator[](const IndexType & index) const
-  { return m_PixelAccessor.Get( this->m_Image->GetPixel(index) ); }
-
-  /** Get the OffsetTable from the adapted image */
-  const OffsetValueType * GetOffsetTable() const;
-
-  /** Compute  Index given an Offset */
-  IndexType ComputeIndex(OffsetValueType offset) const;
-
   /** PixelContainer typedef support. Used to construct a container for
    * the pixel data. */
   typedef typename InternalImageType::PixelContainer             PixelContainer;
   typedef typename InternalImageType::PixelContainerPointer      PixelContainerPointer;
   typedef typename InternalImageType::PixelContainerConstPointer PixelContainerConstPointer;
-
-  /** Return a pointer to the container. */
-  PixelContainerPointer GetPixelContainer()
-  { return this->m_Image->GetPixelContainer(); }
-
-  const PixelContainer * GetPixelContainer() const
-  { return this->m_Image->GetPixelContainer(); }
-
-  /** Set the container to use. Note that this does not cause the
-   * DataObject to be modified. */
-  void SetPixelContainer(PixelContainer *container);
 
   /** Graft the data and information from one image to another. This
    * is a convenience method to setup a second image with all the meta
@@ -212,149 +124,6 @@ public:
    * and then copies over the pixel container. */
   virtual void Graft(const DataObject *data);
 
-  /** Convenient typedef. */
-  typedef InternalPixelType *InternalPixelPointerType;
-
-  /** Return a pointer to the beginning of the buffer.  This is used by
-   * the image iterator class. */
-  InternalPixelType * GetBufferPointer();
-
-  const InternalPixelType * GetBufferPointer() const;
-
-  /** Set the spacing (size of a pixel) of the image. */
-  virtual void SetSpacing(const SpacingType & values);
-
-  virtual void SetSpacing(const double *values /*[ImageDimension]*/);
-
-  virtual void SetSpacing(const float *values /*[ImageDimension]*/);
-
-  /** Get the spacing (size of a pixel) of the image. The
-   * spacing is the geometric distance between image samples.
-   * \sa SetSpacing() */
-  virtual const SpacingType & GetSpacing() const;
-
-  /** Get the origin of the image. The origin is the geometric
-   * coordinates of the image origin.
-   * \sa SetOrigin() */
-  virtual const PointType & GetOrigin() const;
-
-  /** Set the origin of the image. */
-  virtual void SetOrigin(const PointType values);
-
-  virtual void SetOrigin(const double *values /*[ImageDimension]*/);
-
-  virtual void SetOrigin(const float *values /*[ImageDimension]*/);
-
-  /** Set the direction of the image. */
-  virtual void SetDirection(const DirectionType direction);
-
-  /** Get the direction cosines of the image. The direction cosines
-   * are vectors that point from one pixel to the next.
-   * For ImageBase and Image, the default direction is identity. */
-  virtual const DirectionType & GetDirection() const;
-
-  /** Set Internal Image */
-  virtual void SetImage(InternalImageType *);
-
-  /** Delegate Modified to the Internal Image */
-  virtual void Modified() const;
-
-  /** Delegate GetMTime to the Internal Image */
-  virtual unsigned long GetMTime() const;
-
-  /** Return the Data Accesor object */
-  AccessorType & GetPixelAccessor(void)
-  { return m_PixelAccessor; }
-
-  /** Return the Data Accesor object */
-  const AccessorType & GetPixelAccessor(void) const
-  { return m_PixelAccessor; }
-
-  /** Sets the Data Accesor object */
-  void SetPixelAccessor(const AccessorType & accessor)
-  { m_PixelAccessor = accessor; }
-
-  /** Return the Data Accesor object */
-  virtual void Update();
-
-  virtual void CopyInformation(const DataObject *data);
-
-  /** Methods to update the pipeline. Called internally by the
-   * pipeline mechanism. */
-  virtual void UpdateOutputInformation();
-
-  virtual void SetRequestedRegionToLargestPossibleRegion();
-
-  virtual void PropagateRequestedRegion()
-  throw ( InvalidRequestedRegionError );
-
-  virtual void UpdateOutputData();
-
-  virtual bool VerifyRequestedRegion();
-
-  /** \brief Get the continuous index from a physical point
-   *
-   * Returns true if the resulting index is within the image, false otherwise.
-   * \sa Transform */
-  template< class TCoordRep >
-  bool TransformPhysicalPointToContinuousIndex(
-    const Point< TCoordRep,
-                 itkGetStaticConstMacro(ImageDimension) > & point,
-    ContinuousIndex< TCoordRep,
-                     itkGetStaticConstMacro(ImageDimension) > & index) const
-  {
-    return this->m_Image->TransformPhysicalPointToContinuousIndex(point, index);
-  }
-
-  /** Get the index (discrete) from a physical point.
-   * Floating point index results are truncated to integers.
-   * Returns true if the resulting index is within the image, false otherwise
-   * \sa Transform */
-  template< class TCoordRep >
-  bool TransformPhysicalPointToIndex(
-    const Point< TCoordRep,
-                 itkGetStaticConstMacro(ImageDimension) > & point,
-    IndexType & index) const
-  {
-    return this->m_Image->TransformPhysicalPointToIndex(point, index);
-  }
-
-  /** Get a physical point (in the space which
-   * the origin and spacing infomation comes from)
-   * from a continuous index (in the index space)
-   * \sa Transform */
-  template< class TCoordRep >
-  void TransformContinuousIndexToPhysicalPoint(
-    const ContinuousIndex< TCoordRep,
-                           itkGetStaticConstMacro(ImageDimension) > & index,
-    Point< TCoordRep,
-           itkGetStaticConstMacro(ImageDimension) > & point) const
-  {
-    this->m_Image->TransformContinuousIndexToPhysicalPoint(index, point);
-  }
-
-  /** Get a physical point (in the space which
-   * the origin and spacing infomation comes from)
-   * from a discrete index (in the index space)
-   *
-   * \sa Transform */
-  template< class TCoordRep >
-  void TransformIndexToPhysicalPoint(
-    const IndexType & index,
-    Point< TCoordRep,
-           itkGetStaticConstMacro(ImageDimension) > & point) const
-  {
-    this->m_Image->TransformIndexToPhysicalPoint(index, point);
-  }
-
-  template< class TCoordRep >
-  void TransformLocalVectorToPhysicalVector(
-    const FixedArray< TCoordRep, itkGetStaticConstMacro(ImageDimension) > & inputGradient,
-    FixedArray< TCoordRep, itkGetStaticConstMacro(ImageDimension) > & outputGradient) const
-  {
-    this->m_Image->TransformLocalVectorToPhysicalVector(inputGradient, outputGradient);
-  }
-
 protected:
 
   ImageAdaptor();
@@ -366,17 +135,9 @@ private:
   ImageAdaptor(const Self &);   //purposely not implemented
   void operator=(const Self &); //purposely not implemented
 
-  // Adapted image, most of the calls to ImageAdaptor
-  // will be delegated to this image
-  typename InternalImageType::Pointer m_Image;
-
-  // Data accessor object,
-  // it converts the presentation of a pixel
-  AccessorType m_PixelAccessor;
 };
 } // end namespace itk
 
 #include "itkImageAdaptorImageSpecialization.txx"
-
 
 #endif // __itkImageAdaptorImageSpecialization_h

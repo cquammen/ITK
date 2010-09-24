@@ -371,10 +371,7 @@ protected:
   virtual ~RegularImageAdaptor();
   void PrintSelf(std::ostream & os, Indent indent) const;
 
-private:
-
-  RegularImageAdaptor(const Self &);   //purposely not implemented
-  void operator=(const Self &); //purposely not implemented
+protected:
 
   // Adapted image, most of the calls to RegularImageAdaptor
   // will be delegated to this image
@@ -383,6 +380,11 @@ private:
   // Data accessor object,
   // it converts the presentation of a pixel
   AccessorType m_PixelAccessor;
+
+private:
+  RegularImageAdaptor(const Self &);   //purposely not implemented
+  void operator=(const Self &); //purposely not implemented
+
 };
 } // end namespace itk
 
