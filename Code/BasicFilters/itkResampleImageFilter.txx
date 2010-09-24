@@ -28,6 +28,9 @@
 #include "itkImageLinearIteratorWithIndex.h"
 #include "itkSpecialCoordinatesImage.h"
 
+#include "itkPhysicalImageBase.h"
+#include "itkRegularImageBase.h"
+
 namespace itk
 {
 /**
@@ -131,9 +134,35 @@ void
 ResampleImageFilter< TInputImage, TOutputImage, TInterpolatorPrecisionType >
 ::SetOutputParametersFromImage(const ImageBaseType *image)
 {
-  this->SetOutputOrigin ( image->GetOrigin() );
-  this->SetOutputSpacing ( image->GetSpacing() );
-  this->SetOutputDirection ( image->GetDirection() );
+  // HACK! Tries to cast image to a PhysicalImageBase and
+  // then RegularImageBase to set output parameters.
+  typedef PhysicalImageBase< ::itk::GetImageDimension< ImageBaseType >::ImageDimension > PhysicalImageBaseType;
+  const PhysicalImageBaseType *physicalImage;
+  try
+    {
+    physicalImage = dynamic_cast< const PhysicalImageBaseType * >( image );
+    }
+  catch ( ... )
+    {}
+  if ( physicalImage )
+    {
+    this->SetOutputOrigin ( physicalImage->GetOrigin() );
+    this->SetOutputDirection ( physicalImage->GetDirection() );
+    }
+
+  typedef RegularImageBase< ::itk::GetImageDimension< ImageBaseType >::ImageDimension > RegularImageBaseType;
+  const RegularImageBaseType *regularImage;
+  try
+    {
+    regularImage = dynamic_cast< const RegularImageBaseType * >( image );
+    }
+  catch ( ... )
+    {}
+  if ( regularImage )
+    {
+    this->SetOutputSpacing ( regularImage->GetSpacing() );
+    }
+
   this->SetOutputStartIndex ( image->GetLargestPossibleRegion().GetIndex() );
   this->SetSize ( image->GetLargestPossibleRegion().GetSize() );
 }
