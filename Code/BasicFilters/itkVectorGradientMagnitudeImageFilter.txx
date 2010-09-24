@@ -230,7 +230,7 @@ VectorGradientMagnitudeImageFilter< TInputImage, TRealType, TOutputImage >
   else
     {
     m_RealValuedInputImage =
-      dynamic_cast< const ImageBase< ImageDimension > * >( this->GetInput() );
+      dynamic_cast< const ImageBaseType * >( this->GetInput() );
     }
 }
 
