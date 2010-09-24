@@ -33,6 +33,10 @@ namespace itk
 // (needed for PrintSelf mechanism)
 template< unsigned int VImageDimension >
 class ImageBase;
+template< unsigned int VImageDimension >
+class PhysicalImageBase;
+template< unsigned int VImageDimension >
+class RegularImageBase;
 
 /** \class ImageRegion
  * \brief An image region represents a structured region of data.
@@ -279,6 +283,8 @@ private:
 
   /** Friends of ImageRegion */
   friend class ImageBase< VImageDimension >;
+  friend class PhysicalImageBase< VImageDimension >;
+  friend class RegularImageBase< VImageDimension >;
 };
 
 template< unsigned int VImageDimension >
