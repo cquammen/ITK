@@ -125,7 +125,7 @@ public:
   /** Direction typedef support.  The Direction is a matix of
    * direction cosines that specify the direction between samples.
    * */
-  typedef Matrix< double, VImageDimension, VImageDimension > DirectionType;
+  typedef typename Superclass::DirectionType DirectionType;
 
   /** Set the direction cosines of the image. The direction cosines
    * are vectors that point from one pixel to the next.
