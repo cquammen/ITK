@@ -36,37 +36,9 @@ template< unsigned int VImageDimension >
 RegularImageBase< VImageDimension >
 ::RegularImageBase()
 {
-  memset( m_OffsetTable, 0, ( VImageDimension + 1 ) * sizeof( unsigned long ) );
   m_Spacing.Fill(1.0);
-  m_Origin.Fill(0.0);
-  m_Direction.SetIdentity();
   m_IndexToPhysicalPoint.SetIdentity();
   m_PhysicalPointToIndex.SetIdentity();
-}
-
-/**
- *
- */
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::Initialize()
-{
-  //
-  // We don't modify ourselves because the "ReleaseData" methods depend upon
-  // no modification when initialized. Otherwise BUG: 8490 will
-  // reoccur.
-  //
-  // DO NOT CALL ANY METHODS WHICH MODIFY OURSELVES
-
-  // Call the superclass which should initialize the BufferedRegion ivar.
-  Superclass::Initialize();
-
-  // Clear the offset table
-  memset( m_OffsetTable, 0, ( VImageDimension + 1 ) * sizeof( unsigned long ) );
-
-  // Clear the BufferedRegion ivar
-  this->InitializeBufferedRegion();
 }
 
 /**
@@ -119,29 +91,6 @@ RegularImageBase< VImageDimension >
 template< unsigned int VImageDimension >
 void
 RegularImageBase< VImageDimension >
-::SetOrigin(const double origin[VImageDimension])
-{
-  PointType p(origin);
-
-  this->SetOrigin(p);
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetOrigin(const float origin[VImageDimension])
-{
-  Point< float, VImageDimension > of(origin);
-  PointType                       p;
-  p.CastFrom(of);
-  this->SetOrigin(p);
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
 ::SetDirection(const DirectionType direction)
 {
   bool modified = false;
@@ -150,9 +99,9 @@ RegularImageBase< VImageDimension >
     {
     for ( unsigned int c = 0; c < VImageDimension; c++ )
       {
-      if ( m_Direction[r][c] != direction[r][c] )
+      if ( this->m_Direction[r][c] != direction[r][c] )
         {
-        m_Direction[r][c] = direction[r][c];
+        this->m_Direction[r][c] = direction[r][c];
         modified = true;
         }
       }
@@ -196,99 +145,6 @@ RegularImageBase< VImageDimension >
 template< unsigned int VImageDimension >
 void
 RegularImageBase< VImageDimension >
-::ComputeOffsetTable()
-{
-  // vxl_uint_64 num=1;
-  OffsetValueType  num = 1;
-  const SizeType & bufferSize = this->GetBufferedRegion().GetSize();
-
-  // m_OffsetTable[0] = (OffsetValueType)num;
-  m_OffsetTable[0] = num;
-  for ( unsigned int i = 0; i < VImageDimension; i++ )
-    {
-    num *= bufferSize[i];
-    // m_OffsetTable[i+1] = (OffsetValueType)num;
-    m_OffsetTable[i + 1] = num;
-    }
-  // if( num > NumericTraits<SizeValueType>::max() )
-  //   {
-  //   itkExceptionMacro(<< "Requested number of pixels (" << num
-  //     << ") is greater than the largest possible number of pixels (" <<
-  // NumericTraits<SizeValueType>::max() << ").");
-  //   }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::UpdateOutputInformation()
-{
-  if ( this->GetSource() )
-    {
-    this->GetSource()->UpdateOutputInformation();
-    }
-  else
-    {
-    // If we don't have a source, we should set our Image to span our
-    // buffer (by setting our LargestPossibleRegion to equal our
-    // BufferedRegion). However, if the buffer is empty, we leave the
-    // LargestPossibleRegion at its prior value.  This allows InPlace
-    // filters to overwrite their inputs safely (taking ownership of
-    // the pixel buffers), yet respond to subsequent requests for
-    // information.
-    if ( this->GetBufferedRegion().GetNumberOfPixels() > 0 )
-      {
-      this->SetLargestPossibleRegion( this->GetBufferedRegion() );
-      }
-    }
-
-  // Now we should know what our largest possible region is. If our
-  // requested region was not set yet, (or has been set to something
-  // invalid - with no data in it ) then set it to the largest possible
-  // region.
-  if ( this->GetRequestedRegion().GetNumberOfPixels() == 0 )
-    {
-    this->SetRequestedRegionToLargestPossibleRegion();
-    }
-}
-
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::UpdateOutputData()
-{
-  // If the requested region does not contain any pixels then there is
-  // no reason to Update the output data. This is needed so that
-  // filters don't need to update all inputs. This occours in
-  // RegularImageBase as  oppose to DataObject, but cause this statement
-  // requires the specific GetNumberOfPixels methods ( as oppose to a
-  // generic Region::IsEmpty method ).
-  //
-  // Also note, the check of the largest possible region is needed so
-  // that an exception will be thrown in the process object when no
-  // input has been set. ( This part of the statement could be removed
-  // if this check happened earlier in the pipeline )
-  if ( this->GetRequestedRegion().GetNumberOfPixels() > 0
-       || this->GetLargestPossibleRegion().GetNumberOfPixels() == 0 )
-    {
-    this->Superclass::UpdateOutputData();
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetRequestedRegionToLargestPossibleRegion()
-{
-  this->SetRequestedRegion( this->GetLargestPossibleRegion() );
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
 ::CopyInformation(const DataObject *data)
 {
   // Standard call to the superclass' method
@@ -311,12 +167,7 @@ RegularImageBase< VImageDimension >
     if ( imgData )
       {
       // Copy the meta data for this data type
-      this->SetLargestPossibleRegion( imgData->GetLargestPossibleRegion() );
       this->SetSpacing( imgData->GetSpacing() );
-      this->SetOrigin( imgData->GetOrigin() );
-      this->SetDirection( imgData->GetDirection() );
-      this->SetNumberOfComponentsPerPixel(
-        imgData->GetNumberOfComponentsPerPixel() );
       }
     else
       {
@@ -326,190 +177,6 @@ RegularImageBase< VImageDimension >
                          << typeid( const RegularImageBase * ).name() );
       }
     }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::Graft(const DataObject *data)
-{
-  typedef RegularImageBase< VImageDimension > RegularImageBaseType;
-
-  const RegularImageBaseType *image;
-
-  try
-    {
-    image = dynamic_cast< const RegularImageBaseType * >( data );
-    }
-  catch ( ... )
-    {
-    return;
-    }
-
-  if ( !image )
-    {
-    return;
-    }
-
-  // Copy the meta-information
-  this->CopyInformation(image);
-
-  // Copy the remaining region information. Subclasses are
-  // responsible for copying the pixel container.
-  this->SetBufferedRegion( image->GetBufferedRegion() );
-  this->SetRequestedRegion( image->GetRequestedRegion() );
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-bool
-RegularImageBase< VImageDimension >
-::RequestedRegionIsOutsideOfTheBufferedRegion()
-{
-  unsigned int      i;
-  const IndexType & requestedRegionIndex = this->GetRequestedRegion().GetIndex();
-  const IndexType & bufferedRegionIndex = this->GetBufferedRegion().GetIndex();
-
-  const SizeType & requestedRegionSize = this->GetRequestedRegion().GetSize();
-  const SizeType & bufferedRegionSize = this->GetBufferedRegion().GetSize();
-
-  for ( i = 0; i < VImageDimension; i++ )
-    {
-    if ( ( requestedRegionIndex[i] < bufferedRegionIndex[i] )
-         || ( ( requestedRegionIndex[i] + static_cast< OffsetValueType >( requestedRegionSize[i] ) )
-              > ( bufferedRegionIndex[i] + static_cast< OffsetValueType >( bufferedRegionSize[i] ) ) ) )
-      {
-      return true;
-      }
-    }
-
-  return false;
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-bool
-RegularImageBase< VImageDimension >
-::VerifyRequestedRegion()
-{
-  bool         retval = true;
-  unsigned int i;
-
-  // Is the requested region within the LargestPossibleRegion?
-  // Note that the test is indeed against the largest possible region
-  // rather than the buffered region; see DataObject::VerifyRequestedRegion.
-  const IndexType & requestedRegionIndex = this->GetRequestedRegion().GetIndex();
-  const IndexType & largestPossibleRegionIndex =
-    this->GetLargestPossibleRegion().GetIndex();
-
-  const SizeType & requestedRegionSize = this->GetRequestedRegion().GetSize();
-  const SizeType & largestPossibleRegionSize =
-    this->GetLargestPossibleRegion().GetSize();
-
-  for ( i = 0; i < VImageDimension; i++ )
-    {
-    if ( ( requestedRegionIndex[i] < largestPossibleRegionIndex[i] )
-         || ( ( requestedRegionIndex[i] + static_cast< long >( requestedRegionSize[i] ) )
-              > ( largestPossibleRegionIndex[i] + static_cast< long >( largestPossibleRegionSize[i] ) ) ) )
-      {
-      retval = false;
-      }
-    }
-
-  return retval;
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetBufferedRegion(const RegionType & region)
-{
-  if ( m_BufferedRegion != region )
-    {
-    m_BufferedRegion = region;
-    this->ComputeOffsetTable();
-    this->Modified();
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::InitializeBufferedRegion(void)
-{
-  //
-  // We don't modify ourselves because the "ReleaseData" methods depend upon
-  // no modification when initialized.
-  //
-  // Otherwise BUG: 8490 will reoccur
-
-  m_BufferedRegion = RegionType();
-  this->ComputeOffsetTable();
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetRequestedRegion(const RegionType & region)
-{
-  if ( m_RequestedRegion != region )
-    {
-    m_RequestedRegion = region;
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetRequestedRegion(DataObject *data)
-{
-  RegularImageBase *imgData;
-
-  imgData = dynamic_cast< RegularImageBase * >( data );
-
-  if ( imgData )
-    {
-    // only copy the RequestedRegion if the parameter object is an image
-    this->SetRequestedRegion( imgData->GetRequestedRegion() );
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetLargestPossibleRegion(const RegionType & region)
-{
-  if ( m_LargestPossibleRegion != region )
-    {
-    m_LargestPossibleRegion = region;
-    this->Modified();
-    }
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-unsigned int
-RegularImageBase< VImageDimension >
-::GetNumberOfComponentsPerPixel() const
-{
-  // Returns the number of components in the image. Note that for most images
-  // this is 1. Even for Image< RGBPixel< T >, 3 >.
-  // This is > 1 only for time-series images such as itk::VectorImage.
-  return 1;
-}
-
-//----------------------------------------------------------------------------
-template< unsigned int VImageDimension >
-void
-RegularImageBase< VImageDimension >
-::SetNumberOfComponentsPerPixel(unsigned int)
-{   // does nothing (always 1 )
 }
 
 /**
@@ -522,20 +189,7 @@ RegularImageBase< VImageDimension >
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "LargestPossibleRegion: " << std::endl;
-  this->GetLargestPossibleRegion().PrintSelf( os, indent.GetNextIndent() );
-
-  os << indent << "BufferedRegion: " << std::endl;
-  this->GetBufferedRegion().PrintSelf( os, indent.GetNextIndent() );
-
-  os << indent << "RequestedRegion: " << std::endl;
-  this->GetRequestedRegion().PrintSelf( os, indent.GetNextIndent() );
-
   os << indent << "Spacing: " << this->GetSpacing() << std::endl;
-
-  os << indent << "Origin: " << this->GetOrigin() << std::endl; \
-
-  os << indent << "Direction: " << std::endl << this->GetDirection() << std::endl;
 
   os << indent << "IndexToPointMatrix: " << std::endl;
   os << indent << this->m_IndexToPhysicalPoint << std::endl;

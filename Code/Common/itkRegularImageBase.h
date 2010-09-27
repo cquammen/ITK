@@ -127,22 +127,6 @@ public:
    * */
   typedef Matrix< double, VImageDimension, VImageDimension > DirectionType;
 
-  /** Restore object to initialized state. */
-  void Initialize();
-
-  /** Image dimension. The dimension of an image is fixed at construction. */
-  static unsigned int GetImageDimension()
-  { return VImageDimension; }
-
-  /** Set the origin of the image. The origin is the geometric
-   * coordinates of the image origin.  It is stored internally
-   * as double but may be set from float.
-   * \sa GetOrigin() */
-  itkSetMacro(Origin, PointType);
-  virtual void SetOrigin(const double origin[VImageDimension]);
-
-  virtual void SetOrigin(const float origin[VImageDimension]);
-
   /** Set the direction cosines of the image. The direction cosines
    * are vectors that point from one pixel to the next.
    *
@@ -171,172 +155,11 @@ public:
    * \sa GetDirection() */
   virtual void SetDirection(const DirectionType direction);
 
-  /** Get the direction cosines of the image. The direction cosines
-   * are vectors that point from one pixel to the next.
-   * For RegularImageBase and Image, the default direction is identity. */
-  itkGetConstReferenceMacro(Direction, DirectionType);
-
   /** Get the spacing (size of a pixel) `of the image. The
    * spacing is the geometric distance between image samples.
    * The value returned is a pointer to a double array.
    * For RegularImageBase and Image, the default data spacing is unity. */
   itkGetConstReferenceMacro(Spacing, SpacingType);
-
-  /** Get the origin of the image. The origin is the geometric
-   * coordinates of the index (0,0).  The value returned is a pointer
-   * to a double array.  For RegularImageBase and Image, the default origin is
-   * 0. */
-  itkGetConstReferenceMacro(Origin, PointType);
-
-  /** Allocate the image memory. The size of the image must
-   * already be set, e.g. by calling SetRegions().
-   *
-   * This method should be pure virtual, if backwards compatibility
-   *  was not required.
-   */
-  virtual void Allocate() {}
-
-  /** Set the region object that defines the size and starting index
-   * for the largest possible region this image could represent.  This
-   * is used in determining how much memory would be needed to load an
-   * entire dataset.  It is also used to determine boundary
-   * conditions.
-   * \sa ImageRegion, SetBufferedRegion(), SetRequestedRegion() */
-  virtual void SetLargestPossibleRegion(const RegionType & region);
-
-  /** Get the region object that defines the size and starting index
-   * for the largest possible region this image could represent.  This
-   * is used in determining how much memory would be needed to load an
-   * entire dataset.  It is also used to determine boundary
-   * conditions.
-   * \sa ImageRegion, GetBufferedRegion(), GetRequestedRegion() */
-  virtual const RegionType & GetLargestPossibleRegion() const
-  { return m_LargestPossibleRegion; }
-
-  /** Set the region object that defines the size and starting index
-   * of the region of the image currently loaded in memory.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetRequestedRegion() */
-  virtual void SetBufferedRegion(const RegionType & region);
-
-  /** Get the region object that defines the size and starting index
-   * of the region of the image currently loaded in memory.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetRequestedRegion() */
-  virtual const RegionType & GetBufferedRegion() const
-  { return m_BufferedRegion; }
-
-  /** Set the region object that defines the size and starting index
-   * for the region of the image requested (i.e., the region of the
-   * image to be operated on by a filter). Setting the RequestedRegion
-   * does not cause the object to be modified. This method is called
-   * internally by the pipeline and therefore bypasses the modified
-   * time calculation.
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetBufferedRegion() */
-  virtual void SetRequestedRegion(const RegionType & region);
-
-  /** Set the requested region from this data object to match the requested
-   * region of the data object passed in as a parameter.  This method
-   * implements the API from DataObject. The data object parameter must be
-   * castable to an RegularImageBase. Setting the RequestedRegion does not cause
-   * the object to be modified. This method is called internally by
-   * the pipeline and therefore bypasses the modified time
-   * calculation. */
-  virtual void SetRequestedRegion(DataObject *data);
-
-  /** Get the region object that defines the size and starting index
-   * for the region of the image requested (i.e., the region of the
-   * image to be operated on by a filter).
-   * \sa ImageRegion, SetLargestPossibleRegion(), SetBufferedRegion() */
-  virtual const RegionType & GetRequestedRegion() const
-  { return m_RequestedRegion; }
-
-  /** Get the offset table.  The offset table gives increments for
-   * moving from one pixel to next in the current row, column, slice,
-   * etc..  This table if of size [VImageDimension+1], because its
-   * values are computed progressively as: {1, N1, N1*N2,
-   * N1*N2*N3,...,(N1*...*Nn)} Where the values {N1,...,Nn} are the
-   * elements of the BufferedRegion::Size array.  The last element of
-   * the OffsetTable is equivalent to the BufferSize.  Having a
-   * [VImageDimension+1] size array, simplifies the implementation of
-   * some data accessing algorithms. The entries in the offset table
-   * are only valid after the BufferedRegion is set. */
-  const OffsetValueType * GetOffsetTable() const { return m_OffsetTable; }
-
-  /** Compute an offset from the beginning of the buffer for a pixel
-   * at the specified index. The index is not checked as to whether it
-   * is inside the current buffer, so the computed offset could
-   * conceivably be outside the buffer. If bounds checking is needed,
-   * one can call ImageRegion::IsInside(ind) on the BufferedRegion
-   * prior to calling ComputeOffset. */
-
-#ifdef ITK_USE_TEMPLATE_META_PROGRAMMING_LOOP_UNROLLING
-  inline OffsetValueType ComputeOffset(const IndexType & ind) const
-  {
-    OffsetValueType offset = 0;
-
-    ImageHelper< VImageDimension, VImageDimension >::ComputeOffset(this->GetBufferedRegion().GetIndex(),
-                                                                   ind,
-                                                                   m_OffsetTable,
-                                                                   offset);
-    return offset;
-  }
-
-#else
-  OffsetValueType ComputeOffset(const IndexType & ind) const
-  {
-    // need to add bounds checking for the region/buffer?
-    OffsetValueType   offset = 0;
-    const IndexType & bufferedRegionIndex = this->GetBufferedRegion().GetIndex();
-
-    // data is arranged as [][][][slice][row][col]
-    // with Index[0] = col, Index[1] = row, Index[2] = slice
-    for ( int i = VImageDimension - 1; i > 0; i-- )
-      {
-      offset += ( ind[i] - bufferedRegionIndex[i] ) * m_OffsetTable[i];
-      }
-    offset += ( ind[0] - bufferedRegionIndex[0] );
-
-    return offset;
-  }
-
-#endif
-  /** Compute the index of the pixel at a specified offset from the
-   * beginning of the buffered region. Bounds checking is not
-   * performed. Thus, the computed index could be outside the
-   * BufferedRegion. To ensure a valid index, the parameter "offset"
-   * should be between 0 and the number of pixels in the
-   * BufferedRegion (the latter can be found using
-   * ImageRegion::GetNumberOfPixels()). */
-#ifdef ITK_USE_TEMPLATE_META_PROGRAMMING_LOOP_UNROLLING
-  inline IndexType ComputeIndex(OffsetValueType offset) const
-  {
-    IndexType         index;
-    const IndexType & bufferedRegionIndex = this->GetBufferedRegion().GetIndex();
-
-    ImageHelper< VImageDimension, VImageDimension >::ComputeIndex(bufferedRegionIndex,
-                                                                  offset,
-                                                                  m_OffsetTable,
-                                                                  index);
-    return index;
-  }
-
-#else
-  IndexType ComputeIndex(OffsetValueType offset) const
-  {
-    IndexType         index;
-    const IndexType & bufferedRegionIndex = this->GetBufferedRegion().GetIndex();
-
-    for ( int i = VImageDimension - 1; i > 0; i-- )
-      {
-      index[i] = static_cast< IndexValueType >( offset / m_OffsetTable[i] );
-      offset -= ( index[i] * m_OffsetTable[i] );
-      index[i] += bufferedRegionIndex[i];
-      }
-    index[0] = bufferedRegionIndex[0] + static_cast< IndexValueType >( offset );
-
-    return index;
-  }
-
-#endif
 
   /** Set the spacing (size of a pixel) of the image. The
    * spacing is the geometric distance between image samples.
@@ -523,92 +346,10 @@ public:
    * LargestPossibleRegion from the input parameter. */
   virtual void CopyInformation(const DataObject *data);
 
-  /** Graft the data and information from one image to another. This
-   * is a convenience method to setup a second image with all the meta
-   * information of another image and use the same pixel
-   * container. Note that this method is different than just using two
-   * SmartPointers to the same image since separate DataObjects are
-   * still maintained. This method is similar to
-   * ImageSource::GraftOutput(). The implementation in RegularImageBase
-   * simply calls CopyInformation() and copies the region ivars.
-   * Subclasses of RegularImageBase are responsible for copying the pixel
-   * container. */
-  virtual void Graft(const DataObject *data);
-
-  /** Update the information for this DataObject so that it can be used
-   * as an output of a ProcessObject.  This method is used the pipeline
-   * mechanism to propagate information and initialize the meta data
-   * associated with a DataObject. This method calls its source's
-   * ProcessObject::UpdateOutputInformation() which determines modified
-   * times, LargestPossibleRegions, and any extra meta data like spacing,
-   * origin, etc. */
-  virtual void UpdateOutputInformation();
-
-  /** Overriden from base class to check if the requested image region
-   * has zero pixels.
-   *
-   * This is needed so that filters can set an input's requested
-   * region to zero, to indicate that it does not need to be updated
-   * or executed.
-   */
-  virtual void UpdateOutputData();
-
-  /** Set the RequestedRegion to the LargestPossibleRegion.  This
-   * forces a filter to produce all of the output in one execution
-   * (i.e. not streaming) on the next call to Update(). */
-  virtual void SetRequestedRegionToLargestPossibleRegion();
-
-  /** Determine whether the RequestedRegion is outside of the
-   * BufferedRegion. This method returns true if the RequestedRegion
-   * is outside the BufferedRegion (true if at least one pixel is
-   * outside). This is used by the pipeline mechanism to determine
-   * whether a filter needs to re-execute in order to satisfy the
-   * current request.  If the current RequestedRegion is already
-   * inside the BufferedRegion from the previous execution (and the
-   * current filter is up to date), then a given filter does not need
-   * to re-execute */
-  virtual bool RequestedRegionIsOutsideOfTheBufferedRegion();
-
-  /** Verify that the RequestedRegion is within the
-   * LargestPossibleRegion.  If the RequestedRegion is not within the
-   * LargestPossibleRegion, then the filter cannot possible satisfy
-   * the request. This method returns true if the request can be
-   * satisfied and returns fails if the request cannot. This method is
-   * used by PropagateRequestedRegion().  PropagateRequestedRegion()
-   * throws a InvalidRequestedRegionError exception is the requested
-   * region is not within the LargestPossibleRegion. */
-  virtual bool VerifyRequestedRegion();
-
-  /** INTERNAL This method is used internally by filters to copy meta-data from
-   * the output to the input. Users should not have a need to use this method.
-   *
-   * Filters that override the ProcessObject's GenerateOutputInformation()
-   * should generally have the following line if they want to propagate meta-
-   * data for both Image and VectorImage
-   * \code
-   * outputImage->SetNumberOfComponentsPerPixel(
-   *    inputImage->GetNumberOfComponentsPerPixel() )
-   * \endcode
-   *
-   * \sa RegularImageBase, VectorImage
-   *
-   * Returns/Sets the number of components in the image. Note that for all
-   * images this is 1. Even for Image< RGBPixel< T >, 3 >.
-   * This is >= 1 only for time-series images such as itk::VectorImage. */
-  virtual unsigned int GetNumberOfComponentsPerPixel() const;
-
-  virtual void SetNumberOfComponentsPerPixel(unsigned int);
-
 protected:
   RegularImageBase();
   ~RegularImageBase();
   virtual void PrintSelf(std::ostream & os, Indent indent) const;
-
-  /** Calculate the offsets needed to move from one pixel to the next
-   * along a row, column, slice, volume, etc. These offsets are based
-   * on the size of the BufferedRegion. This should be called after
-   * the BufferedRegion is set. */
-  void ComputeOffsetTable();
 
   /** Compute helper matrices used to transform Index coordinates to
    * PhysicalPoint coordinates and back. This method is virtual and will be
@@ -623,30 +364,14 @@ protected:
    * inner loop calculations. */
   SpacingType m_Spacing;
 
-  PointType m_Origin;
-
-  DirectionType m_Direction;
-
   /** Matrices intended to help with the conversion of Index coordinates
    *  to PhysicalPoint coordinates */
   DirectionType m_IndexToPhysicalPoint;
   DirectionType m_PhysicalPointToIndex;
 
-  /** Restores the buffered region to it's default state
-   *  This method does not call Modify because Initialization is
-   *  called by ReleaseData and can not modify the MTime
-   * \sa  ReleaseData, Initialize, SetBufferedRegion */
-  virtual void InitializeBufferedRegion(void);
-
 private:
   RegularImageBase(const Self &);      //purposely not implemented
   void operator=(const Self &); //purposely not implemented
-
-  OffsetValueType m_OffsetTable[VImageDimension + 1];
-
-  RegionType m_LargestPossibleRegion;
-  RegionType m_RequestedRegion;
-  RegionType m_BufferedRegion;
 };
 } // end namespace itk
 
