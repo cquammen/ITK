@@ -133,15 +133,6 @@ Image< TPixel, VImageDimension >
     }
 }
 
-//----------------------------------------------------------------------------
-template< class TPixel, unsigned int VImageDimension >
-void
-Image< TPixel, VImageDimension >
-::ComputeIndexToPhysicalPointMatrices()
-{
-  this->Superclass::ComputeIndexToPhysicalPointMatrices();
-}
-
 /**
  *
  */
