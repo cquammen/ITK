@@ -109,6 +109,7 @@ RegularImageBase< VImageDimension >
 
   if ( modified )
     {
+    this->m_DirectionInverse = this->m_Direction.GetInverse();
     this->ComputeIndexToPhysicalPointMatrices();
     }
 }
