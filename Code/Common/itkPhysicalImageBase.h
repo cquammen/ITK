@@ -196,7 +196,11 @@ protected:
    * inner loop calculations. */
   PointType m_Origin;
 
+  /** Direction cosine matrix that rotates image sample points. */
   DirectionType m_Direction;
+
+  /** Inverse of the direction cosine matrix. */
+  DirectionType m_DirectionInverse;
 
 private:
   PhysicalImageBase(const Self &);      //purposely not implemented

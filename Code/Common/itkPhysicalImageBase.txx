@@ -90,6 +90,11 @@ PhysicalImageBase< VImageDimension >
         }
       }
     }
+
+  if ( modified )
+    {
+    m_DirectionInverse = m_Direction.GetInverse();
+    }
 }
 
 //----------------------------------------------------------------------------
