@@ -37,10 +37,6 @@ RectilinearImageBase< VImageDimension >
 ::RectilinearImageBase()
 {
   m_DefaultSpacing.Fill(1.0);
-  for ( unsigned int dim; dim < VImageDimension; dim++ )
-    {
-    m_Spacings[dim].Fill( m_DefaultSpacing[dim] );
-    }
 }
 
 /**
@@ -94,6 +90,7 @@ RectilinearImageBase< VImageDimension >
   if ( spacing != this->m_Spacings[dimension][index] )
     {
     this->m_Spacings[dimension][index] = spacing;
+    this->ComputeSpacingPrefixSum();
     this->Modified();
     }
 }
@@ -142,6 +139,8 @@ RectilinearImageBase< VImageDimension >
       this->m_Spacings[dim].Fill(this->m_DefaultSpacing[dim]);
       }
     }
+
+  this->ComputeSpacingPrefixSum();
 }
 
 //----------------------------------------------------------------------------
@@ -189,9 +188,28 @@ RectilinearImageBase< VImageDimension >
     }
 }
 
-/**
- *
- */
+//----------------------------------------------------------------------------
+template< unsigned int VImageDimension >
+void
+RectilinearImageBase< VImageDimension >
+::ComputeSpacingPrefixSum()
+{
+  for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
+    {
+    this->m_SpacingsPrefixSum[dim].SetSize(this->m_Spacings[dim].Size());
+
+    // For consistency with centered voxel coordinates, we start with
+    // minus half the first voxel width
+    SpacingValueType sum = -0.5*this->m_Spacings[dim][0];
+    for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++)
+      {
+      this->m_SpacingsPrefixSum[dim][i] = sum;
+      sum += this->m_Spacings[dim][i];
+      }
+    }
+}
+
+
 template< unsigned int VImageDimension >
 void
 RectilinearImageBase< VImageDimension >

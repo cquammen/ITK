@@ -170,15 +170,26 @@ public:
     const Point< TCoordRep, VImageDimension > & point,
     IndexType & index) const
   {
-    for ( unsigned int i = 0; i < VImageDimension; i++ )
+    for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
       {
       TCoordRep sum = NumericTraits< TCoordRep >::Zero;
       for ( unsigned int j = 0; j < VImageDimension; j++ )
         {
-        sum += this->m_PhysicalPointToIndex[i][j] * ( point[j] - this->m_Origin[j] );
+        sum += this->m_DirectionInverse[dim][j] *
+          ( point[j] - this->m_SpacingsPrefixSum[j][0] );
         }
-      index[i] = Math::RoundHalfIntegerUp< IndexValueType >(sum);
+
+      for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
+        {
+        if ( this->m_SpacingsPrefixSum[dim][i] > sum )
+          {
+          index[dim] = i;
+          break;
+          }
+        }
       }
+
+    // TODO - need to properly handle image boundary cases
 
     // Now, check to see if the index is within allowed bounds
     const bool isInside = this->GetLargestPossibleRegion().IsInside(index);
@@ -195,19 +206,30 @@ public:
     const Point< TCoordRep, VImageDimension > & point,
     ContinuousIndex< TCoordRep, VImageDimension > & index) const
   {
-    Vector< double, VImageDimension > cvector;
+    for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
+      {
+      TCoordRep sum = NumericTraits< TCoordRep >::Zero;
+      unsigned int uintIndex = 0;
+      for ( unsigned int j = 0; j < VImageDimension; j++ )
+        {
+        sum += this->m_DirectionInverse[dim][j] *
+          ( point[j] - this->m_SpacingsPrefixSum[j][0] );
+        }
 
-#if 0
-    for ( unsigned int k = 0; k < VImageDimension; k++ )
-      {
-      cvector[k] = point[k] - this->m_Origin[k];
+      for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
+        {
+        if ( this->m_SpacingsPrefixSum[dim][i] > sum )
+          {
+          uintIndex = i;
+          break;
+          }
+        }
+
+      // Add the fractional component and integer part to get the
+      // continuous index.
+      index[dim] = ( sum - uintIndex ) / this->m_Spacings[dim][uintIndex];
       }
-    cvector = m_PhysicalPointToIndex * cvector;
-    for ( unsigned int i = 0; i < VImageDimension; i++ )
-      {
-      index[i] = static_cast< TCoordRep >( cvector[i] );
-      }
-#endif
+
     // Now, check to see if the index is within allowed bounds
     const bool isInside = this->GetLargestPossibleRegion().IsInside(index);
 
@@ -223,17 +245,28 @@ public:
     const ContinuousIndex< TCoordRep, VImageDimension > & index,
     Point< TCoordRep, VImageDimension > & point) const
   {
-#if 0
-    for ( unsigned int r = 0; r < VImageDimension; r++ )
+    Point< TCoordRep, VImageDimension > opoint;
+    for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
       {
-      TCoordRep sum = NumericTraits< TCoordRep >::Zero;
-      for ( unsigned int c = 0; c < VImageDimension; c++ )
-        {
-        sum += this->m_IndexToPhysicalPoint(r, c) * index[c];
-        }
-      point[r] = sum + this->m_Origin[r];
+      // Integer part of the index.
+      unsigned int i = static_cast<unsigned int>(index[dim]);
+
+      // Fractional part of the index.
+      double fraction = index[dim] - i;
+      opoint[dim] = this->m_SpacingsPrefixSum[dim][i] +
+        fraction * this->m_Spacings[dim][i];
+
       }
-#endif
+
+    for ( unsigned int c = 0; c < VImageDimension; c++ )
+      {
+      point[c] = NumericTraits< TCoordRep >::Zero;
+      for ( unsigned int r = 0; r < VImageDimension; r++ )
+        {
+        point[c] += this->m_DirectionInverse[r][c] * opoint[c];
+        }
+      point[c] += this->m_Origin[c];
+      }
   }
 
   /** Get a physical point (in the space which
@@ -246,16 +279,8 @@ public:
     const IndexType & index,
     Point< TCoordRep, VImageDimension > & point) const
   {
-#if 0
-    for ( unsigned int i = 0; i < VImageDimension; i++ )
-      {
-      point[i] = this->m_Origin[i];
-      for ( unsigned int j = 0; j < VImageDimension; j++ )
-        {
-        point[i] += m_IndexToPhysicalPoint[i][j] * index[j];
-        }
-      }
-#endif
+    ContinuousIndex< TCoordRep, VImageDimension > cindex( index );
+    TransformContinuousIndexToPhysicalPoint( cindex, point );
   }
 
   /** Get a physical point (in the space which
@@ -280,11 +305,6 @@ public:
     const FixedArray< TCoordRep, VImageDimension > & inputGradient,
     FixedArray< TCoordRep, VImageDimension > & outputGradient) const
   {
-#if 0
-    //
-    //TODO: This temporary implementation should be replaced with Template
-    // MetaProgramming.
-    //
     const DirectionType & direction = this->GetDirection();
 
     for ( unsigned int i = 0; i < VImageDimension; i++ )
@@ -297,7 +317,6 @@ public:
         }
       outputGradient[i] = static_cast< TCoordRep >( sum );
       }
-#endif
   }
 
   /** Copy information from the specified data set.  This method is
@@ -316,6 +335,8 @@ protected:
   ~RectilinearImageBase();
   virtual void PrintSelf(std::ostream & os, Indent indent) const;
 
+  void ComputeSpacingPrefixSum();
+
 private:
   RectilinearImageBase(const Self &);      //purposely not implemented
   void operator=(const Self &); //purposely not implemented
@@ -325,6 +346,10 @@ private:
    * each dimension such that the size of the array is the number of
    * voxels in that dimension. */
   SpacingArrayType m_Spacings[VImageDimension];
+
+  /** Prefix sum (exclusive) of spacings. Used as an acceleration data
+   * structure in the transforms from physical points to indices. */
+  SpacingArrayType m_SpacingsPrefixSum[VImageDimension];
 
   /** Default spacing. */
   DefaultSpacingType m_DefaultSpacing;
