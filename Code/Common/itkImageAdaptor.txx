@@ -21,5 +21,6 @@
 
 #include "itkImageAdaptorImageSpecialization.txx"
 #include "itkImageAdaptorVectorImageSpecialization.txx"
+#include "itkImageAdaptorRectilinearImageSpecialization.txx"
 
 #endif

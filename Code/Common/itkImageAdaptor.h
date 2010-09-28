@@ -18,7 +18,7 @@
 #define __itkImageAdaptor_h
 
 #include "itkImage.h"
-#include "itkRegularImageAdaptor.h"
+#include "itkRectilinearImage.h"
 
 #include "itkDefaultPixelAccessorFunctor.h"
 
@@ -59,6 +59,7 @@ class ITK_EXPORT ImageAdaptor : public ImageBase< ::itk::GetImageDimension< TIma
 /** Include header files for specializations, one for each image type. */
 #include "itkImageAdaptorImageSpecialization.h"
 #include "itkImageAdaptorVectorImageSpecialization.h"
+#include "itkImageAdaptorRectilinearImageSpecialization.h"
 
 #ifndef ITK_MANUAL_INSTANTIATION
 #include "itkImageAdaptor.txx"
