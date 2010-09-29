@@ -38,6 +38,7 @@ PhysicalImageBase< VImageDimension >
 {
   m_Origin.Fill(0.0);
   m_Direction.SetIdentity();
+  m_DirectionInverse.SetIdentity();
 }
 
 /**
@@ -150,6 +151,8 @@ PhysicalImageBase< VImageDimension >
   os << indent << "Origin: " << this->GetOrigin() << std::endl; \
 
   os << indent << "Direction: " << std::endl << this->GetDirection() << std::endl;
+
+  os << indent << "DirectionInverse: " << std::endl << m_DirectionInverse << std::endl;
 
 }
 } // end namespace itk
