@@ -133,6 +133,10 @@ public:
 
   virtual void SetDefaultSpacing(const float spacing[VImageDimension]);
 
+  /** Initialize the spacings to be uniform according to the default
+   * spacing. */
+  void InitializeWithDefaultSpacings();
+
   /** Get the spacing (size of a pixel) of the image. The
    * spacing is the geometric distance between image samples.
    * The value returned is a pointer to a double array.
@@ -143,15 +147,12 @@ public:
    * the given index. In a rectilinear image, the geometric distance
    * between image samples may vary at each index position. */
   virtual void SetSpacing(unsigned int dimension, unsigned int index,
-                          const SpacingValueType & spacing);
-
-  virtual void SetSpacing(unsigned int dimension, unsigned int index,
                           double spacing);
 
   virtual void SetSpacing(unsigned int dimension, unsigned int index,
                           float spacing);
 
-  virtual SpacingValueType GetSpacing(unsigned int dimension, unsigned int index);
+  virtual SpacingValueType GetSpacing(unsigned int dimension, unsigned int index) const;
 
   /** Set the region object that defines the size and starting index
    * for the largest possible region this image could represent.  This
@@ -176,30 +177,31 @@ public:
       for ( unsigned int j = 0; j < VImageDimension; j++ )
         {
         sum += this->m_DirectionInverse[dim][j] *
-          ( point[j] - this->m_SpacingsPrefixSum[j][0] );
+          ( point[j] - this->m_Origin[dim] );
         }
 
       int regionSize = this->GetLargestPossibleRegion().GetSize()[dim];
       TCoordRep minCoord = this->m_SpacingsPrefixSum[dim][0];
-      TCoordRep maxCoord = this->m_SpacingsPrefixSum[dim][regionSize-1] +
-        this->m_Spacings[dim][regionSize-1];
+      TCoordRep maxCoord = this->m_SpacingsPrefixSum[dim][regionSize];
       if ( sum < minCoord )
         {
         TCoordRep spacing = this->m_Spacings[dim][0];
         index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
         }
-      else if ( sum > maxCoord )
+      else if ( sum >= maxCoord )
         {
         TCoordRep spacing = this->m_Spacings[dim][regionSize-1];
-        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        TCoordRep shift = sum - maxCoord;
+        index[dim] = regionSize + Math::Floor< IndexValueType >(shift/spacing);
         }
       else
         {
-        for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
+        index[dim] = regionSize - 1;
+        for ( unsigned int i = 1; i <= this->m_Spacings[dim].Size(); i++ )
           {
           if ( this->m_SpacingsPrefixSum[dim][i] > sum )
             {
-            index[dim] = i;
+            index[dim] = i-1;
             break;
             }
           }
@@ -228,38 +230,41 @@ public:
       for ( unsigned int j = 0; j < VImageDimension; j++ )
         {
         sum += this->m_DirectionInverse[dim][j] *
-          ( point[j] - this->m_SpacingsPrefixSum[j][0] );
+          ( point[j] - this->m_Origin[dim] );
         }
 
       int regionSize = this->GetLargestPossibleRegion().GetSize()[dim];
       TCoordRep minCoord = this->m_SpacingsPrefixSum[dim][0];
-      TCoordRep maxCoord = this->m_SpacingsPrefixSum[dim][regionSize-1] +
-        this->m_Spacings[dim][regionSize-1];
+      TCoordRep maxCoord = this->m_SpacingsPrefixSum[dim][regionSize];
       if ( sum < minCoord )
         {
         TCoordRep spacing = this->m_Spacings[dim][0];
-        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        TCoordRep shift = sum - minCoord;
+        index[dim] = shift / spacing - 0.5;
         }
-      else if ( sum > maxCoord )
+      else if ( sum >= maxCoord )
         {
         TCoordRep spacing = this->m_Spacings[dim][regionSize-1];
-        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        TCoordRep shift = sum - maxCoord;
+        index[dim] = shift / spacing + regionSize - 0.5;
         }
       else
         {
-        for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
+        for ( unsigned int i = 0; i <= this->m_Spacings[dim].Size(); i++ )
           {
           if ( this->m_SpacingsPrefixSum[dim][i] > sum )
             {
-            uintIndex = i;
+            uintIndex = i-1;
             break;
             }
           }
-        }
 
-      // Add the fractional component and integer part to get the
-      // continuous index.
-      index[dim] = ( sum - uintIndex ) / this->m_Spacings[dim][uintIndex];
+        // Add the fractional component and integer part to get the
+        // continuous index.
+        index[dim] = uintIndex - 0.5  +
+          ( sum - m_SpacingsPrefixSum[dim][uintIndex] ) /
+          this->m_Spacings[dim][uintIndex];
+        }
       }
 
     // Now, check to see if the index is within allowed bounds
@@ -367,7 +372,7 @@ protected:
   ~RectilinearImageBase();
   virtual void PrintSelf(std::ostream & os, Indent indent) const;
 
-  void ComputeSpacingPrefixSum();
+  void ComputeSpacingsPrefixSum();
 
 private:
   RectilinearImageBase(const Self &);      //purposely not implemented

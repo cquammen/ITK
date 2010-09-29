@@ -83,16 +83,14 @@ RectilinearImageBase< VImageDimension >
 template< unsigned int VImageDimension >
 void
 RectilinearImageBase< VImageDimension >
-::SetSpacing(unsigned int dimension, unsigned int index,
-             const SpacingValueType & spacing)
+::InitializeWithDefaultSpacings()
 {
-  itkDebugMacro("setting Spacing to " << spacing);
-  if ( spacing != this->m_Spacings[dimension][index] )
+  for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
     {
-    this->m_Spacings[dimension][index] = spacing;
-    this->ComputeSpacingPrefixSum();
-    this->Modified();
+    this->m_Spacings[dim].Fill(this->m_DefaultSpacing[dim]);
     }
+
+  this->ComputeSpacingsPrefixSum();
 }
 
 //----------------------------------------------------------------------------
@@ -110,14 +108,21 @@ void
 RectilinearImageBase< VImageDimension >
 ::SetSpacing(unsigned int dimension, unsigned int index, double spacing)
 {
-  this->SetSpacing(dimension, index, static_cast<SpacingValueType>(spacing));
+  itkDebugMacro("setting Spacing (dimension: " << dimension << ", index: "
+                << index << ") to " << spacing);
+  if ( spacing != this->m_Spacings[dimension][index] )
+    {
+    this->m_Spacings[dimension][index] = spacing;
+    this->ComputeSpacingsPrefixSum();
+    this->Modified();
+    }
 }
 
 //----------------------------------------------------------------------------
 template< unsigned int VImageDimension >
 typename RectilinearImageBase< VImageDimension >::SpacingValueType
 RectilinearImageBase< VImageDimension >
-::GetSpacing(unsigned int dimension, unsigned int index)
+::GetSpacing(unsigned int dimension, unsigned int index) const
 {
   return m_Spacings[dimension][index];
 }
@@ -136,11 +141,13 @@ RectilinearImageBase< VImageDimension >
     if ( this->m_Spacings[dim].Size() != region.GetSize()[dim] )
       {
       this->m_Spacings[dim].SetSize(region.GetSize()[dim]);
-      this->m_Spacings[dim].Fill(this->m_DefaultSpacing[dim]);
       }
     }
 
-  this->ComputeSpacingPrefixSum();
+  // Initialize spacings with the default spacing.
+  this->InitializeWithDefaultSpacings();
+
+  this->ComputeSpacingsPrefixSum();
 }
 
 //----------------------------------------------------------------------------
@@ -192,20 +199,23 @@ RectilinearImageBase< VImageDimension >
 template< unsigned int VImageDimension >
 void
 RectilinearImageBase< VImageDimension >
-::ComputeSpacingPrefixSum()
+::ComputeSpacingsPrefixSum()
 {
   for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
     {
-    this->m_SpacingsPrefixSum[dim].SetSize(this->m_Spacings[dim].Size());
+    unsigned int prefixSumElements = this->m_Spacings[dim].Size()+1;
+    this->m_SpacingsPrefixSum[dim].SetSize(prefixSumElements);
 
     // For consistency with centered voxel coordinates, we start with
     // minus half the first voxel width
     SpacingValueType sum = -0.5*this->m_Spacings[dim][0];
-    for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++)
+    for ( unsigned int i = 0; i < prefixSumElements-1; i++)
       {
       this->m_SpacingsPrefixSum[dim][i] = sum;
       sum += this->m_Spacings[dim][i];
       }
+    // Add one element to the end of the array for convenience
+    this->m_SpacingsPrefixSum[dim][prefixSumElements-1] = sum;
     }
 }
 
@@ -217,12 +227,14 @@ RectilinearImageBase< VImageDimension >
 {
   Superclass::PrintSelf(os, indent);
 
-  for ( unsigned int dim; dim < VImageDimension; dim++ )
+  for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
     {
-    for ( unsigned int index; index < this->m_Spacings[dim].Size(); index++)
-      {
-      os << indent << "Dimension spacing: " << this->m_Spacings[dim] << std::endl;
-      }
+    os << indent << "Dimension " << dim << " spacings: " << this->m_Spacings[dim] << std::endl;
+    }
+
+  for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
+    {
+    os << indent << "Dimension " << dim << " prefix sum spacings: " << this->m_SpacingsPrefixSum[dim] << std::endl;
     }
 
   os << indent << "Default spacing: " << this->m_DefaultSpacing << std::endl;
