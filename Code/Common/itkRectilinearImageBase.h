@@ -179,17 +179,32 @@ public:
           ( point[j] - this->m_SpacingsPrefixSum[j][0] );
         }
 
-      for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
+      int regionSize = this->GetLargestPossibleRegion().GetSize()[dim];
+      TCoordRep minCoord = this->m_SpacingsPrefixSum[dim][0];
+      TCoordRep maxCoord = this->m_SpacingsPrefixSum[dim][regionSize-1] +
+        this->m_Spacings[dim][regionSize-1];
+      if ( sum < minCoord )
         {
-        if ( this->m_SpacingsPrefixSum[dim][i] > sum )
+        TCoordRep spacing = this->m_Spacings[dim][0];
+        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        }
+      else if ( sum > maxCoord )
+        {
+        TCoordRep spacing = this->m_Spacings[dim][regionSize-1];
+        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        }
+      else
+        {
+        for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
           {
-          index[dim] = i;
-          break;
+          if ( this->m_SpacingsPrefixSum[dim][i] > sum )
+            {
+            index[dim] = i;
+            break;
+            }
           }
         }
       }
-
-    // TODO - need to properly handle image boundary cases
 
     // Now, check to see if the index is within allowed bounds
     const bool isInside = this->GetLargestPossibleRegion().IsInside(index);
@@ -216,12 +231,29 @@ public:
           ( point[j] - this->m_SpacingsPrefixSum[j][0] );
         }
 
-      for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
+      int regionSize = this->GetLargestPossibleRegion().GetSize()[dim];
+      TCoordRep minCoord = this->m_SpacingsPrefixSum[dim][0];
+      TCoordRep maxCoord = this->m_SpacingsPrefixSum[dim][regionSize-1] +
+        this->m_Spacings[dim][regionSize-1];
+      if ( sum < minCoord )
         {
-        if ( this->m_SpacingsPrefixSum[dim][i] > sum )
+        TCoordRep spacing = this->m_Spacings[dim][0];
+        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        }
+      else if ( sum > maxCoord )
+        {
+        TCoordRep spacing = this->m_Spacings[dim][regionSize-1];
+        index[dim] = Math::RoundHalfIntegerUp< IndexValueType >(sum/spacing);
+        }
+      else
+        {
+        for ( unsigned int i = 0; i < this->m_Spacings[dim].Size(); i++ )
           {
-          uintIndex = i;
-          break;
+          if ( this->m_SpacingsPrefixSum[dim][i] > sum )
+            {
+            uintIndex = i;
+            break;
+            }
           }
         }
 
