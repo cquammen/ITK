@@ -58,6 +58,7 @@ REGISTER_TEST(itkPolyLineParametricPathTest );
 REGISTER_TEST(itkPolygonCellTest );
 REGISTER_TEST(itkQuaternionRigidTransformTest );
 REGISTER_TEST(itkRealTimeClockTest );
+REGISTER_TEST(itkRectilinearImageTest );
 REGISTER_TEST(itkRGBPixelTest );
 REGISTER_TEST(itkRGBInterpolateImageFunctionTest );
 REGISTER_TEST(itkRGBToVectorImageAdaptorTest );
