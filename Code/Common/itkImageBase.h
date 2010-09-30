@@ -208,6 +208,27 @@ public:
   virtual const RegionType & GetRequestedRegion() const
   { return m_RequestedRegion; }
 
+  /** Convenience methods to set the LargestPossibleRegion,
+   *  BufferedRegion and RequestedRegion. Allocate must still be called.
+   */
+  void SetRegions(RegionType region)
+  {
+    this->SetLargestPossibleRegion(region);
+    this->SetBufferedRegion(region);
+    this->SetRequestedRegion(region);
+  }
+
+  void SetRegions(SizeType size)
+  {
+    RegionType region; region.SetSize(size);
+
+    this->SetLargestPossibleRegion(region);
+    this->SetBufferedRegion(region);
+    this->SetRequestedRegion(region);
+  }
+
+
+
   /** Get the offset table.  The offset table gives increments for
    * moving from one pixel to next in the current row, column, slice,
    * etc..  This table if of size [VImageDimension+1], because its
