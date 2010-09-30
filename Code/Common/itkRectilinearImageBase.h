@@ -262,7 +262,7 @@ public:
         // Add the fractional component and integer part to get the
         // continuous index.
         index[dim] = uintIndex - 0.5  +
-          ( sum - m_SpacingsPrefixSum[dim][uintIndex] ) /
+          ( sum - this->m_SpacingsPrefixSum[dim][uintIndex] ) /
           this->m_Spacings[dim][uintIndex];
         }
       }
@@ -285,14 +285,28 @@ public:
     Point< TCoordRep, VImageDimension > opoint;
     for ( unsigned int dim = 0; dim < VImageDimension; dim++ )
       {
-      // Integer part of the index.
-      unsigned int i = static_cast<unsigned int>(index[dim]);
+      IndexValueType dimSize = this->GetLargestPossibleRegion().GetSize()[dim];
 
-      // Fractional part of the index.
-      double fraction = index[dim] - i;
-      opoint[dim] = this->m_SpacingsPrefixSum[dim][i] +
-        fraction * this->m_Spacings[dim][i];
+      IndexValueType arrayIndex = Math::RoundHalfIntegerUp< IndexValueType >( index[dim] );
+      TCoordRep lowerEdge = arrayIndex - 0.5;
 
+      // Fractional distance across the voxel
+      double fraction = index[dim] - lowerEdge;
+
+      if ( lowerEdge < -0.5 )
+        {
+        opoint[dim] = index[dim] * this->m_Spacings[dim][0];
+        }
+      else if ( lowerEdge >= dimSize - 0.5 )
+        {
+        opoint[dim] = (index[dim] - dimSize + 0.5) *
+          this->m_Spacings[dim][dimSize-1] + this->m_SpacingsPrefixSum[dim][dimSize];
+        }
+      else
+        {
+        opoint[dim] = this->m_SpacingsPrefixSum[dim][arrayIndex] +
+          fraction * this->m_Spacings[dim][arrayIndex];
+        }
       }
 
     for ( unsigned int c = 0; c < VImageDimension; c++ )
