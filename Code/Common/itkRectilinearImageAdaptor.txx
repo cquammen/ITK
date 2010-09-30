@@ -283,7 +283,7 @@ RectilinearImageAdaptor< TImage, TAccessor >
 
 //----------------------------------------------------------------------------
 template< class TImage, class TAccessor >
-void
+typename RectilinearImageAdaptor< TImage, TAccessor >::SpacingValueType
 RectilinearImageAdaptor< TImage, TAccessor >
 ::GetSpacing(unsigned int dimension, unsigned int index)
 {

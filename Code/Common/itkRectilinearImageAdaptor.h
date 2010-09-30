@@ -244,7 +244,7 @@ public:
    * \sa SetSpacing() */
   virtual const DefaultSpacingType & GetDefaultSpacing() const;
 
-    /** Set/get the spacing (size of a pixel) for the given dimension at
+  /** Set/get the spacing (size of a pixel) for the given dimension at
    * the given index. In a rectilinear image, the geometric distance
    * between image samples may vary at each index position. */
   virtual void SetSpacing(unsigned int dimension, unsigned int index,
@@ -256,7 +256,7 @@ public:
   virtual void SetSpacing(unsigned int dimension, unsigned int index,
                           float spacing);
 
-  virtual void GetSpacing(unsigned int dimension, unsigned int index);
+  virtual SpacingValueType GetSpacing(unsigned int dimension, unsigned int index);
 
   /** Get the origin of the image. The origin is the geometric
    * coordinates of the image origin.
