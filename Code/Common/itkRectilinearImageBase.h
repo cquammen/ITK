@@ -146,10 +146,10 @@ public:
   /** Set/get the spacing (size of a pixel) for the given dimension at
    * the given index. In a rectilinear image, the geometric distance
    * between image samples may vary at each index position. */
-  virtual void SetSpacing(unsigned int dimension, unsigned int index,
+  virtual void SetSpacing(unsigned int dimension, IndexValueType index,
                           double spacing);
 
-  virtual void SetSpacing(unsigned int dimension, unsigned int index,
+  virtual void SetSpacing(unsigned int dimension, IndexValueType index,
                           float spacing);
 
   virtual SpacingValueType GetSpacing(unsigned int dimension, unsigned int index) const;

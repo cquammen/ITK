@@ -97,7 +97,7 @@ RectilinearImageBase< VImageDimension >
 template< unsigned int VImageDimension >
 void
 RectilinearImageBase< VImageDimension >
-::SetSpacing(unsigned int dimension, unsigned int index, float spacing)
+::SetSpacing(unsigned int dimension, IndexValueType index, float spacing)
 {
   this->SetSpacing(dimension, index, static_cast<SpacingValueType>(spacing));
 }
@@ -106,7 +106,7 @@ RectilinearImageBase< VImageDimension >
 template< unsigned int VImageDimension >
 void
 RectilinearImageBase< VImageDimension >
-::SetSpacing(unsigned int dimension, unsigned int index, double spacing)
+::SetSpacing(unsigned int dimension, IndexValueType index, double spacing)
 {
   itkDebugMacro("setting Spacing (dimension: " << dimension << ", index: "
                 << index << ") to " << spacing);
