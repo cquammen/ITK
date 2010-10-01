@@ -31,6 +31,7 @@ add_test(itkAbsoluteValueDifferenceImageFilterTest ${BASIC_FILTERS_TESTS} itkAbs
 add_test(itkAdaptImageFilterTest ${BASIC_FILTERS_TESTS} itkAdaptImageFilterTest)
 add_test(itkAdaptImageFilterTest2 ${BASIC_FILTERS_TESTS} itkAdaptImageFilterTest2)
 add_test(itkAddImageFilterTest ${BASIC_FILTERS_TESTS} itkAddImageFilterTest)
+add_test(itkAddRectilinearImageFilterTest ${BASIC_FILTERS_TESTS} itkAddRectilinearImageFilterTest)
 add_test(itkAndImageFilterTest ${BASIC_FILTERS_TESTS} itkAndImageFilterTest)
 add_test(itkApproximateSignedDistanceMapImageFilterTest ${BASIC_FILTERS_TESTS3}
   --compare ${BASELINE}/itkApproximateSignedDistanceMapImageFilterTest.png
@@ -1050,6 +1051,7 @@ itkAdaptImageFilterTest.cxx
 itkAdaptImageFilterTest2.cxx
 itkAdaptiveHistogramEqualizationImageFilterTest.cxx
 itkAddImageFilterTest.cxx
+itkAddRectilinearImageFilterTest.cxx
 itkAndImageFilterTest.cxx
 itkAsinImageFilterAndAdaptorTest.cxx
 itkAtanImageFilterAndAdaptorTest.cxx

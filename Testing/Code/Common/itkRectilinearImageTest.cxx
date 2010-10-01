@@ -89,7 +89,6 @@ int itkRectilinearImageTest(int, char* [] )
 
   for ( unsigned int i = 0; i < sizeof(coords) / sizeof(double); i++ )
     {
-
     point.Fill(coords[i]);
     image->TransformPhysicalPointToIndex(point, index);
     std::cout << "Point " << point << " maps to index " << index << std::endl;
@@ -97,6 +96,26 @@ int itkRectilinearImageTest(int, char* [] )
     point.Fill(coords[i]);
     image->TransformPhysicalPointToContinuousIndex(point, cindex);
     std::cout << "Point " << point << " maps to continuous index " << cindex << std::endl;
+    }
+
+  Image::IndexValueType indices[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+  for ( unsigned int i = 0; i < sizeof(indices) / sizeof(Image::IndexValueType); i++ )
+    {
+    index.Fill(indices[i]);
+    image->TransformIndexToPhysicalPoint(index, point);
+    std::cout << "Index " << index << " maps to point " << point << std::endl;
+    }
+
+  double cindices[] = {-2.5, -2.4, -2.0, -1.5, -1.0, 0.5, 1.0, 1.5, 2.0, 2.5,
+                       3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5, 9.6, 9.7, 9.8,
+                       10.5, 11.0, 11.4, 11.5};
+
+  for ( unsigned int i = 0; i < sizeof(cindices) / sizeof(double); i++ )
+    {
+    cindex.Fill(cindices[i]);
+    image->TransformContinuousIndexToPhysicalPoint(cindex, point);
+    std::cout << "Continuous index " << cindex << " maps to point " << point << std::endl;
     }
 
   return (EXIT_SUCCESS);
