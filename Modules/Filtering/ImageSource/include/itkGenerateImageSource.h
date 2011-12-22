@@ -25,13 +25,12 @@ namespace itk
 {
 
 /** \class GenerateImageSource
- * \brief a Base class for image sources which need to have image
- * size, and other meta-data set.
+ * \brief A base class for image sources that require common
+ * image meta-data to be set.
  *
  * This class adds the ability for the user to set the Image's size,
  * spacing, origin, and direction cosines. It is designed to be a base
- * class for other image sources which generate an image, while there
- * is no image input to the source.
+ * class for other image sources that generate an image.
  *
  * \ingroup DataSources
  * \ingroup ITKImageSource
@@ -53,10 +52,8 @@ public:
   typedef typename OutputImageType::SpacingType   SpacingType;
   typedef typename OutputImageType::PointType     PointType;
   typedef typename OutputImageType::DirectionType DirectionType;
-
-
-  typedef typename TOutputImage::SizeType        SizeType;
-  typedef typename TOutputImage::SizeValueType SizeValueType;
+  typedef typename OutputImageType::SizeType      SizeType;
+  typedef typename OutputImageType::SizeValueType SizeValueType;
 
   /** Dimensionality of the output image */
   itkStaticConstMacro(NDimensions, unsigned int, TOutputImage::ImageDimension);

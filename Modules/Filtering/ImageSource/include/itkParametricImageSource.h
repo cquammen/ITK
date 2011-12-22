@@ -54,10 +54,17 @@ public:
   /** Smart Pointer type to a DataObject. */
   typedef DataObject::Pointer DataObjectPointer;
 
-  /** Some convenient typedefs. */
-  typedef TOutputImage                        OutputImageType;
-  typedef typename OutputImageType::Pointer   OutputImagePointer;
-  typedef typename OutputImageType::PixelType OutputImagePixelType;
+  /** Output image typedefs */
+  typedef TOutputImage                            OutputImageType;
+  typedef typename OutputImageType::Pointer       OutputImagePointer;
+  typedef typename OutputImageType::PixelType     OutputImagePixelType;
+  typedef typename OutputImageType::PixelType     PixelType;
+  typedef typename OutputImageType::RegionType    RegionType;
+  typedef typename OutputImageType::SpacingType   SpacingType;
+  typedef typename OutputImageType::PointType     PointType;
+  typedef typename OutputImageType::DirectionType DirectionType;
+  typedef typename OutputImageType::SizeType      SizeType;
+  typedef typename OutputImageType::SizeValueType SizeValueType;
 
   typedef double                              ParametersValueType;
   typedef Array< ParametersValueType >        ParametersType;

@@ -3,6 +3,7 @@ set(ITKImageSourceTests
   itkGaborImageSourceTest.cxx
   itkGaussianImageSourceTest.cxx
   itkGridImageSourceTest.cxx
+  itkMaskedParametricImageSourceTest.cxx
   itkPhysicalPointImageSourceTest.cxx
 )
 
@@ -67,3 +68,6 @@ itk_add_test(NAME itkPhysicalPointImageSourceTest4
       --compare DATA{${ITK_DATA_ROOT}/Baseline/Filtering/itkPhysicalPointImageSourceTest4.nrrd}
                 ${ITK_TEST_OUTPUT_DIR}/itkPhysicalPointImageSourceTest4.nrrd
       itkPhysicalPointImageSourceTest ${ITK_TEST_OUTPUT_DIR}/itkPhysicalPointImageSourceTest4.nrrd 3  0.785398163 )
+itk_add_test(NAME itkMaskedParametricImageSourceTest
+      COMMAND ITKImageSourceTestDriver
+      itkMaskedParametricImageSourceTest)
